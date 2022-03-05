@@ -12,6 +12,8 @@ class DataPrep:
 
 
     def fit(self,df):
+        df.index = df["PassengerId"]
+        df = df[[i for i in list(df) if i != "PassengerId"]]
         df['Title'] = df["Name"].apply(lambda x: set(x.split()).intersection(self.titles))
         df['Title'] = df['Title'].apply(lambda x: list(x)[0] if len(list(x))>0 else "NoTitle")
         df['Pclass'] = df['Pclass'].astype(str)
@@ -21,17 +23,17 @@ class DataPrep:
         df = pd.concat([df,pd.get_dummies(df.Title,dummy_na=False, drop_first=False)], axis=1)
         df = pd.concat([df,pd.get_dummies(df.Pclass,dummy_na=False, drop_first=False)], axis=1)
         df['Sex'] = np.where(df['Sex'] == "male",0,1)
-
+        df["Age"] = df["Age"].fillna(df["Age"].mean())
         training_data = df.sample(frac=0.8, random_state=25)
         testing_data = df.drop(training_data.index)
 
         if self.req_cols == "Not set":
-            self.req_cols = ['PassengerId','Sex', 'Age', 'SibSp',
+            self.req_cols = ['Sex', 'Age', 'SibSp',
                             'Parch','Fare','Capt.',
                             'Col.', 'Don.', 'Dr.', 'Jonkheer.', 'Major.', 'Master.', 'Miss.',
                             'Mlle.', 'Mme.', 'Mr.', 'Mrs.', 'Ms.', 'NoTitle', 'Rev.', 'Pclass_1',
                             'Pclass_2', 'Pclass_3']
-            self.target = ['PassengerId', 'Survived']
+            self.target = ['Survived']
 
         return training_data[self.req_cols], training_data[self.target], testing_data[self.req_cols], testing_data[self.target]
 
